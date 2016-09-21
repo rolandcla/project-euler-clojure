@@ -1,5 +1,6 @@
 (ns project-euler.problem_0032
-  (:require [clojure.math.combinatorics :as combo])
+  (:require [clojure.math.combinatorics :as combo]
+            [clojure.set])
   )
 
 ;; We shall say that an n-digit number is pandigital if it makes use of all the digits 1 to n exactly once;
