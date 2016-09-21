@@ -1,32 +1,20 @@
 # project-euler-clojure
 
-FIXME: description
+My solutions to the Euler Project problems...
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Download or Clone Me from https://github.com/rolandcla/project-euler-clojure
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar project-euler-clojure-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
+    $ java -jar project-euler-clojure-0.1.0-standalone.jar 0nnn
 
 ## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+ 
+ > java -jar project-euler-clojure-0.1.0-standalone.jar 0010
+ 
+ > lein run 0010
 
 ## License
 

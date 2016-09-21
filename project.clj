@@ -1,4 +1,4 @@
-(defproject project-euler-clojure "0.1.0-SNAPSHOT"
+(defproject project-euler-clojure "0.1.0"
   :description "My Solutions to Project Euler with Clojure"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
