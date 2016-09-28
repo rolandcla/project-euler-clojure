@@ -1,4 +1,4 @@
-(ns project-euler.problem_0038)
+(ns project-euler.problem_0039)
 
 ;; If p is the perimeter of a right angle triangle with integral length sides, {a,b,c},
 ;; there are exactly three solutions for p = 120.
