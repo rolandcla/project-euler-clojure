@@ -24,7 +24,7 @@
           (< x y) nil
           :else (recur yys))))
 
-(defn solution []
+(defn solution1 []
   (loop [[d & seq-next-d] (seq-pentagonals)]
     (let [jk (loop [[j & seq-next-j] seq-next-d]
                (let [k (+ d j)
@@ -38,5 +38,51 @@
         jk
         (recur seq-next-d)))
     )
-    
   )
+
+(defn solution2 []
+  (loop [[d & seq-next-d] (seq-pentagonals)]
+    (let [jk (loop [[j & seq-next-j] seq-next-d]
+               (let [k (+ d j)
+                     ks (search-in-ordered-seq k seq-next-j)]
+                 (cond ks (do (println d j k)
+                              (cond (search-in-ordered-seq (+ k j) ks) [j k]
+                                    (<= (- (first seq-next-j) j) d) (recur seq-next-j)
+                                    :else false
+                                    ))
+                       (<= (- (first seq-next-j) j) d) (recur seq-next-j)
+                       :else false
+                       )
+                 ))]
+      (if jk 
+        jk
+        (recur seq-next-d)))
+    )
+  )
+
+(defn pentagonal [n] (/ (* n (- (* 3 n) 1)) 2))
+
+(defn is-pentagonal? [p]
+  (let [delta (+ 0.25 (* 6 p))
+        x (int (+ 0.5 (/ (+ 0.5 (Math/sqrt delta)) 3)))]
+    (== p (pentagonal x))
+    ))
+
+(defn solution []
+  (->> (iterate inc 1)
+       (map (fn [nd] [nd (pentagonal nd)]))
+       (map (fn [[nd d]] (do (println d) [nd d])))
+       (mapcat (fn [[nd d]]
+                 (->> (iterate inc nd)
+                      (map (fn [nj]
+                             (let [j (pentagonal nj)
+                                   dj (- (pentagonal (inc nj)) j)]
+                               [j dj])))
+                      (take-while (fn [[j dj]] (<= dj d)))
+                      (map (fn [[j dj]] [d j]))
+                               )))
+       (filter (fn [[d j]] (and (is-pentagonal? (+ j d))
+                                (is-pentagonal? (+ j j d)))))
+       (first)
+       ))
+
