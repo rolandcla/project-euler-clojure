@@ -145,12 +145,14 @@
             ])
 
 (defn h-rank [hand]
-  (some identity (map (fn [f r] (when-let [vals (f hand)] [r vals])) ranks (iterate dec (count ranks)))))
+  (some identity (map (fn [f r] (when-let [vals (f hand)] [r (vec vals)])) ranks (iterate dec (count ranks)))))
 
 (defn solution []
   (->> (slurp "resources/p054_poker.txt")
        (clojure.string/split-lines)
-       (map (fn [line] (partition 2 (clojure.string/split line #" "))))
+       (map (fn [line] (partition 5 (clojure.string/split line #" "))))
        (map (fn [[h1 h2]] [(h-rank h1) (h-rank h2)]))
-       (take 5)
+       (map (fn [[r1 r2]] (compare r1 r2)))
+       (filter #{1})
+       (count)
        ))
