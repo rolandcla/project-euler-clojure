@@ -68,7 +68,7 @@
     (== p (pentagonal x))
     ))
 
-(defn solution []
+(defn solution4 []
   (->> (iterate inc 1)
        (map (fn [nd] [nd (pentagonal nd)]))
        (map (fn [[nd d]] (do (println d) [nd d])))
@@ -86,3 +86,10 @@
        (first)
        ))
 
+(defn solution []
+  (loop [i 1, s (sorted-set)]
+    (let [a+b (pentagonal i)]
+      (or (some (fn [a] (let [b (- a+b a)] (and (s b) (s (- b a)))))
+                s)
+          (recur (inc i) (conj s a+b))))
+    ))
