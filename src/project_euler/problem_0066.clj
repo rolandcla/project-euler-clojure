@@ -48,7 +48,9 @@
   (let [a' (int-sqrt x)]
     (if (< (- x (sqr a')) (- (sqr (+ 1 a')) x)) a' (+ 1 a'))))
 
-(defn diophantine-solution [d x]
+(defn diophantine-solution
+  "Naive solution !!! Doesn't work :("
+  [d x]
   (let [x2-1 (- (* x x) 1)]
     (if (zero? (rem x2-1 d))
       (let [y2 (/ x2-1 d)
@@ -58,7 +60,9 @@
           nil))
       nil)))
 
-(defn diophantine-min-solution-in-x [d]
+(defn diophantine-min-solution-in-x
+  "Naive solution !!! Doesn't work :("
+  [d]
   (->> (iterate inc 2)
        (map (fn [x]
               [x  (diophantine-solution d x)]))
@@ -66,20 +70,39 @@
        (first)
        ))
 
-(defn chakravala [d]
-  (let [a  (nearest-int-sqrt d)
-        b  1
-        k  (- (sqr a) d)]
-    (println "a b k : " a b k)
+(defn abs [x] (if (< x 0) (- x) x))
+
+(defn mod [x y] (rem (+ y (rem x y)) y))
+
+(defn chakravala
+  "From : http://www.isibang.ac.in/~sury/chakravala.pdf"
+  [n]
+  (let [sqrt-n (int-sqrt n)
+        p0  (int-sqrt n)
+        q0  1
+        m0  (- (sqr p0) n)
+        x0  p0]
+    (loop [p0 p0, q0 q0, m0 m0, x0 x0]
+      (if (== m0 1)
+        [p0 q0]
+        (let [abs-m0 (abs m0)
+              r  (mod (- x0) abs-m0)
+              x1 (+ (* (quot (- sqrt-n r) abs-m0) abs-m0) r)
+              p1 (/ (+ (* p0 x1) (* n q0)) abs-m0)
+              q1 (/ (+ p0 (* x1 q0)) abs-m0)
+              m1 (/ (- (sqr x1) n) m0)]
+          (recur p1 q1 m1 x1))))
 
     ))
 
 (defn solution []
-  (->> (range 2 1001)
+  (->> (range 2N 1001)
        (remove is-square?)
-       (map (fn [d] (let [[x y] (diophantine-min-solution-in-x d)]
+       (map (fn [d] (let [[x y] (chakravala d)]
                       [x d])))
        (sort)
        (last)
        (second)
        ))
+
+;;-> 661
