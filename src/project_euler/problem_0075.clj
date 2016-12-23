@@ -48,12 +48,10 @@
                    (conj s-t-set (if (< s t) [s t] [t s])))
                  #{})
          (map (fn [[s t]] [(+ r s) (+ r t) (+ r s t)]))
-         ;;(map (fn [xyz] [(apply + xyz) xyz]))
-         ;;(filter (fn [[r s t]] (== (+ (* r r) (* s s)) (* t t))))
          )))
 
 (defn brute-force-solution []
-  (->> (range 2 50000 2)
+  (->> (range 2 375000 2)
        (mapcat dickson)
        (map (fn [xyz] [(apply + xyz) xyz]))
        (filter (fn [[perim _]] (<= perim 1500000)))
