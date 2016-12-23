@@ -18,20 +18,21 @@
          (map (fn [s] (map count s)))
          )))
 
-(defn start-histo [n]
-  (->> (sum-generator n)
-       (group-by first)
-       (map (fn [[beg sums]] [beg (count sums)]))
-       (sort)
-       ))
+;; Partition function (number theory)
+(def p
+  (memoize
+   (fn [n]
+     (if (zero? n)
+       1
+       (->> (mapcat (fn [k] [(/ (* k (- (* 3 k) 1)) 2) (/ (* k (+ (* 3 k) 1)) 2)])
+                    (iterate inc 1))
+            (take-while (fn [m] (<= m n)))
+            (map (fn [m] (p (- n m))))
+            (map (fn [ix pm] (if (even? (quot ix 2)) pm (- pm))) (iterate inc 0))
+            (reduce +)
+            )))))
 
-(defn full-histo [m]
-  (->> (range 2 m)
-       (map (fn [n] [n (start-histo n)]))
-       (map (fn [[n h]] (println (format "%2d" n) (map #(format "%-7s" %) h))))
-       ))
+(defn solution []
+  (- (p 100) 1))
 
-
-  (defn naive-n-of-sums [n]
-    (count (sum-generator count)))
-
+;;-> 190569291
