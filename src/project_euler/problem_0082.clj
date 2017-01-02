@@ -13,13 +13,7 @@
                [537 699 497 121 956]
                [805 732 524  37 331]])
 
-;; (defn minimal-path [matrix]
-;;   (let [n (count matrix)
-;;         m' (-> (vec (map (fn [row] (vec (map (fn [v] [v nil]) row))) matrix))
-;;                (update-in [0 0] (fn [[v _]] [v v]))
-;;                )]))
-
-(defn minimal-path [matrix]
+(defn init-minimal-path [matrix]
   (let [n (count matrix)
         m' (->> matrix
                 (map (fn [row]
@@ -29,7 +23,6 @@
                 vec)
         ]
     m'))
-
 
 (defn h-min-paths-for-col [matrix col]
   (->> matrix
@@ -42,6 +35,38 @@
        vec)
   )
 
+(defn min-path-in-col [col]
+  (let [col' (->> col
+                  (map-indexed (fn [row-ix [v min-v]]
+                                 [v (min min-v
+                                         (+ v (get-in col [(dec row-ix) 1] min-v))
+                                         (+ v (get-in col [(inc row-ix) 1] min-v))
+                                         )]))
+                  vec
+                  )]
+    (if (= col col')
+      col
+      (recur col'))))
+
 (defn v-min-paths-for-col [matrix col-ix]
-  (let [col (for [row matrix] (nth row col-ix))]
-    col))
+  (let [col (vec (for [row matrix] (nth row col-ix)))
+        col' (min-path-in-col col)]
+    (vec (map (fn [row cell] (assoc row col-ix cell))
+              matrix
+              col'))))
+
+(defn minimal-path [matrix]
+  (->> (loop [m (init-minimal-path matrix), col 1]
+         (if (== col (count matrix))
+           m
+           (recur (-> m (h-min-paths-for-col col) (v-min-paths-for-col col)) (inc col))))
+       (map (fn [row] (second (last row))))
+       (apply min)))
+
+(defn solution []
+  (->> (slurp "resources/p082_matrix.txt")
+       (clojure.string/split-lines)
+       (map (fn [line] (vec (map (comp int bigdec) (clojure.string/split line #",")))))
+       (vec)
+       (minimal-path)
+       ))
