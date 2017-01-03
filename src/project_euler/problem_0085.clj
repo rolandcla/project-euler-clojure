@@ -11,8 +11,8 @@
   (let [a 1.0
         b 1.0
         c (* x -2)
-        d (- (* b b) (* 4 a c))]
-    (/ (- (Math/sqrt d) b) 2 a)))
+        delta (- (* b b) (* 4 a c))]
+    (/ (- (Math/sqrt delta) b) 2 a)))
 
 (defn abs [x] (if (< x 0) (- x) x))
 
@@ -30,4 +30,4 @@
        (apply *)
        ))
 
-
+;;-> 2772

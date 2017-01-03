@@ -38,7 +38,9 @@
 
 ;;------------------------------------------------------------------------
 
-(defn dickson [r]
+(defn dickson
+  "https://en.wikipedia.org/wiki/Formulas_for_generating_Pythagorean_triples"
+  [r]
   (let [st  (/ (* r r) 2)
         pfs (prime-factors st)]
     (->> (combo/subsets pfs)
