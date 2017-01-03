@@ -60,33 +60,24 @@
        ))
 
 (defn solution-for [m]
-  (->> (range 2 1000 2)
+  (->> (range 2 m 2)
        (mapcat dickson)
        (filter (fn [[a b _]] (and (<= a m) (<= (/ b 2) m))))
-       (filter (fn [[a b _]] (>= (* 2 a) b)))
-       (mapcat (fn [[a b _]] (concat (for [y (range 1 (inc (quot b 2)))
-                                           :let [z (- b y)]
-                                           :when (and (<= y a) (<= z a))]
-                                       (sort [a y z]))
-                                     (for [y (range 1 (inc (quot a 2)))
-                                           :let [z (- a y)]
-                                           :when (and (<= y b) (<= z b))]
-                                       (sort [b y z]))
+       (mapcat (fn [[a b _]] [[a b] [b a]]))
+       (mapcat (fn [[x y+z]] (concat (for [y (range 1 (inc (quot y+z 2)))
+                                           :let [z (- y+z y)]
+                                           :when (and (<= y x) (<= z x))]
+                                       (sort [x y z]))
                                      )))
 
        (filter (fn [[x y z]] (<= x y z m)))
-
-       ;;(take )
-       ;;(set)
-       ;;(count)
-       ))
-
-(defn brute-force-solution []
-  (->> (range 2 375000 2)
-       (mapcat dickson)
-       (map (fn [xyz] [(apply + xyz) xyz]))
-       (filter (fn [[perim _]] (<= perim 1500000)))
-       (group-by (fn [[perim _]] perim))
-       (filter (fn [[perim xyzs]] (== 1 (count xyzs))))
        (count)
        ))
+
+(defn solution []
+  (->> (range 1800 1900)
+       (drop-while (fn [m] (<= (solution-for m) 1000000)))
+       (first)
+       ))
+
+;;-> 1818
