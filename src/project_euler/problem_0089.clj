@@ -62,6 +62,11 @@
 (defn solution []
   (->> (slurp "resources/p089_roman.txt")
        (clojure.string/split-lines)
-       (map from-roman)
-       (take 10)
+       (map (fn [rom] (let [x (from-roman rom)] [rom x (to-roman x)])))
+       ;;(filter (fn [[r1 x r2]] (not= r1 r2)))
+       (map (fn [[r1 x r2]] (- (count r1) (count r2))))
+       ;;(filter #(> % 0))
+       (reduce +)
        ))
+
+;;-> 743
