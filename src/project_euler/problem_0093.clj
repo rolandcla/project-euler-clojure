@@ -23,11 +23,11 @@
 ;; can be obtained, giving your answer as a string: abcd.
 
 
-(def expressions
+(def exp-trees
   [
    (fn [[op1 op2 op3] [a b c d]]
      (try 
-       (op1 a (op2 b (op3 c d)))
+       (op1 (op2 a b) (op3 c d))
        (catch ArithmeticException e nil))
      )
 
@@ -36,14 +36,19 @@
        (op1 (op2 (op3  a b) c) d)
        (catch ArithmeticException e nil))
      )
-   ])
 
+   ;; (fn [[op1 op2 op3] [a b c d]]
+   ;;   (try 
+   ;;     (op1 a (op2 b (op3 c d)))
+   ;;     (catch ArithmeticException e nil))
+   ;;   )
+   ])
 
 (defn target-numbers [ds]
   (->> (combo/combinations [+ + + - - - * * * / / /] 3)
        (mapcat combo/permutations)
-       (mapcat (fn [ops] (map (fn [xs] [ops xs]) (combo/permutations ds))))
-       (mapcat (fn [[ops xs]] (map (fn [ex] (ex ops xs)) expressions)))
+       (combo/cartesian-product (combo/permutations ds))
+       (mapcat (fn [[xs ops]] (map (fn [ex] (ex ops xs)) exp-trees)))
        (filter (fn [y] (and (integer? y) (> y 0))))
        (set)
        ))
