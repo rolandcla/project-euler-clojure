@@ -7,4 +7,5 @@
                  [org.clojure/math.combinatorics "0.1.3"]]
   :main ^:skip-aot project-euler.core
   :target-path "target/%s"
+  ;; :jvm-opts ["-Xss10M"] ;; (for problem 0094)
   :profiles {:uberjar {:aot :all}})
