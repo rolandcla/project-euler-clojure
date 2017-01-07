@@ -36,23 +36,38 @@
        ))
 ;;........................................................................................................
 
-(defn search-chain [n]
-  (loop [n n, seen-pos {}, seen-vec [], cnt 0]
-    (if (> n 1000000)
-      [seen-vec (count seen-vec)]
-      (if-let [ix (seen-pos n)]
-        [seen-vec ix]
-        (recur (sum-of-proper-divisors n) (assoc seen-pos n cnt) (conj seen-vec n) (inc cnt))))
+
+(defn search-longuest-chain-from [m]
+  (loop [seen    (apply vector-of :int (repeat m -1))
+         i       0
+         l-chain []]
+    (if (< i m)
+      (if (== -1 (seen i))
+        (let [[ch ch-loop] (loop [x  i
+                                ch [x]]
+                           (let [y (sum-of-proper-divisors x)]
+                             (if (and (< y m) (== -1 (seen y)))
+                               (let [ix (.indexOf ch y)]
+                                 (if (>= ix 0)
+                                   [(conj ch y) (subvec ch ix)]
+                                   (recur y (conj ch y))
+                                   ))
+                               [ch []]
+                               )
+                             ))]
+          ;;(println i ch ch-loop)
+          (let [seen' (reduce (fn [s v] (assoc s v 0)) seen ch)
+                l-chain' (if (> (count ch-loop) (count l-chain)) ch-loop l-chain)]
+            (recur seen' (inc i) l-chain')))
+        (recur seen (inc i) l-chain))
+      l-chain)
     ))
 
 (defn solution []
-  (->> (loop [not-seen (set (range 1000000))
-              l-chain  []]
-         (if (seq not-seen)
-           (let [[seen ch-ix] (search-chain (first not-seen))
-                 ch           (subvec seen ch-ix)]
-             (if (> (count ch) (count l-chain))
-               (recur (apply disj not-seen seen) ch)
-               (recur (apply disj not-seen seen) l-chain)))
-           l-chain)
-         )))
+  (->> (search-longuest-chain-from 1000000)
+       (sort)
+       (first)
+       ))
+
+;;-> 14316
+
