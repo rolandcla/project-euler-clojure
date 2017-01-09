@@ -52,7 +52,11 @@
 (defn print-grid [grid]
   (->> (range 9)
        (map (fn [r-ix]
-              (println (apply str (for [c-ix (range 9)] (grid [r-ix c-ix]))))
+              (println (apply str (for [c-ix (range 9)]
+                                    (let [v (grid [r-ix c-ix])]
+                                      (cond (set? v) \_
+                                            (= \0 v) \_
+                                            :else v)))))
               ))))
 
 (def rows
@@ -97,33 +101,39 @@
           grid
           ))
 
-
 (defn pgrid-completed? [pgrid]
   (not (some set? (vals pgrid))))
 
-(defn pgrid-invalid? [pgrid]
-  (some nil? (vals pgrid)))
+(defn pgrid-resolved? [pgrid]
+  (->> (concat rows cols boxs)
+       (map (fn [unit] (set (map pgrid unit))))
+       (remove (fn [vs] (== 9 (count vs))))
+       (seq)
+       (not)
+       ))
+
 
 (defn step-reduce-pgrid [pgrid]
-  (reduce (fn [pgrid' [sq v]]
-            (assoc pgrid' sq
-                   (if (set? v)
-                     (->> (conflicts sq)
-                          (map pgrid)
-                          ;;(map (fn [x] (println sq x) x))
-                          (remove set?)
-                          (set)
-                          (difference v)
-                          ((fn [v'] (case (count v')
-                                      0 v
-                                      1 (first v')
-                                      v' )))
-                          )
-                     v))
+  (try
+    (reduce (fn [pgrid' [sq v]]
+              (assoc pgrid' sq
+                     (if (set? v)
+                       (->> (conflicts sq)
+                            (map pgrid)
+                            (remove set?)
+                            (set)
+                            (difference v)
+                            ((fn [v'] (case (count v')
+                                        0 (throw RuntimeException)
+                                        1 (first v')
+                                        v' )))
+                            )
+                       v))
+              )
+            {}
+            pgrid
             )
-          {}
-          pgrid
-          ))
+    (catch RuntimeException e nil)))
 
 (defn reduce-pgrid [pgrid]
   (let [pgrid' (step-reduce-pgrid pgrid)]
@@ -131,48 +141,34 @@
       pgrid
       (recur pgrid'))))
 
-(defn random-pgrid [pgrid]
+(defn iter-possibilities [pgrid]
   (->> (filter (fn [[sq v]] (set? v)) pgrid)
-       ((fn [sq_v_seq]
-          (when (seq sq_v_seq)
-            (->> sq_v_seq
-                 (rand-nth)
-                 ((fn [[sq v-set]]
-                    (assoc pgrid sq (rand-nth (seq v-set)))))
-                 ))))
+       (sort-by (fn [[_ v]] (count v)))
+       (first)
+       ((fn [[sq vs]] (map (fn [v] [sq v]) vs)))
        ))
-
-;; (defn search-solution [pgrid]
-;;   (let [r-pgrid (reduce-pgrid pgrid)]
-;;     (cond (pgrid-invalid? r-pgrid)   (->> (random-pgrid pgrid)
-;;                                           (search-solution))
-;;           (pgrid-completed? r-pgrid) r-pgrid
-;;           :else                      (->> (random-pgrid r-pgrid)
-;;                                           (search-solution))
-;;           )
-;;     ))
 
 (defn search-solution [pgrid]
   (let [r-pgrid (reduce-pgrid pgrid)]
-    (if (pgrid-completed? r-pgrid)
-      r-pgrid
-      (let [rdm-pgrid (random-pgrid r-pgrid)]
-        (if rdm-pgrid
-          (search-solution rdm-pgrid)
-          
-          )
-        )
-      )
+    (when r-pgrid
+      (if (pgrid-completed? r-pgrid)
+        (if (pgrid-resolved? r-pgrid)
+          r-pgrid
+          nil)
+        (->> (iter-possibilities r-pgrid)
+             (map (fn [[sq v]] (assoc r-pgrid sq v)))
+             (map search-solution)
+             (some identity))
+        ))
     ))
 
 (defn solution []
   (->> (read-grids)
        (map make-pgrid)
        (map search-solution)
-       (map pgrid-completed?)
-       ;; (map (fn [grid] (+ (* 100 (- (int (grid [0 0])) 48))
-       ;;                    (* 10 (- (int (grid [0 1])) 48))
-       ;;                    (* 1(- (int (grid [0 2])) 48))
-       ;;                    )))
-       ;; (reduce +)
+       (map (fn [grid] (+ (* 100 (- (int (grid [0 0])) 48))
+                          (* 10 (- (int (grid [0 1])) 48))
+                          (* 1(- (int (grid [0 2])) 48))
+                          )))
+       (reduce +)
        ))
