@@ -18,9 +18,6 @@
 
 ;; NOTE: All anagrams formed must be contained in the given text file.
 
-;;-------------------------------------------------------------------------------------------------------
-;; from problem_0030:
-
 (defn digits
   [n]
   (loop [n n, ds []]
@@ -28,10 +25,9 @@
           q (quot n 10)
           new-ds (conj ds r)]
       (if (== q 0)
-        new-ds
+        (reverse new-ds)
         (recur q new-ds)
         ))))
-;;-------------------------------------------------------------------------------------------------------
 
 (defn read-anagrams []
   (->> (str/split (slurp "resources/p098_words.txt") #",")
@@ -80,12 +76,14 @@
              (if-let [[_ y2s] (find sq-map sds)]
                (or (->> y2s
                         (map (fn [y2] [y2 (digits y2)]))
-                        (map (fn [[y2 y2ds]] [x2 y2 (make-anagram-pattern ds y2ds)]))
-                        (filter (fn [[_ _ pat]] (word-patterns pat)))
+                        (map (fn [[y2 y2ds]] [y2 (make-anagram-pattern ds y2ds)]))
+                        (filter (fn [[_ pat]] (word-patterns pat)))
                         (first)
                         )
                    (recur (dec x) (update sq-map sds #(conj % x2))))
                (recur (dec x) (assoc sq-map sds [x2]))
                )))
-         ;;(first)
+         (first)
          )))
+
+;;-> 18769
