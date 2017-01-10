@@ -18,6 +18,21 @@
 
 ;; NOTE: All anagrams formed must be contained in the given text file.
 
+;;-------------------------------------------------------------------------------------------------------
+;; from problem_0030:
+
+(defn digits
+  [n]
+  (loop [n n, ds []]
+    (let [r (rem n 10)
+          q (quot n 10)
+          new-ds (conj ds r)]
+      (if (== q 0)
+        new-ds
+        (recur q new-ds)
+        ))))
+;;-------------------------------------------------------------------------------------------------------
+
 (defn read-anagrams []
   (->> (str/split (slurp "resources/p098_words.txt") #",")
        (map (fn [s] (butlast (next s))))
@@ -27,7 +42,50 @@
        (map second)
        ))
 
-(defn matchings [anagrams]
+(defn make-anagram-pattern [xs ys]
+  (letfn [(positions [vs]
+            (->> (map-indexed (fn [ix v] [ix v]) vs)
+                 (group-by second)
+                 (map (fn [[v ixs]] [v (set (map first ixs))]))
+                 (into {})
+                 ))]
+    (let [pos-xs (positions xs)]
+      (->> (seq (positions ys))
+           (map (fn [[y y-ixs]] [(pos-xs y) y-ixs]))
+           (set)
+           ))))
+
+(defn make-patterns [anagrams]
   (->> anagrams
        (mapcat (fn [anag] (combo/combinations anag 2)))
+       (mapcat (fn [[xs ys]] [(make-anagram-pattern xs ys)
+                              (make-anagram-pattern ys xs)]))
        ))
+
+
+
+(defn solution []
+  (let [anagrams (read-anagrams)
+        n (count (ffirst anagrams))
+        word-patterns (->> anagrams
+                           (make-patterns)
+                           (set)
+                           )]
+    (->> (loop [x (int (Math/sqrt (Math/pow 10 n)))
+                sq-map {}]
+           (let [x2 (* x x)
+                 ds (digits x2)
+                 sds (sort ds)
+                 ]
+             (if-let [[_ y2s] (find sq-map sds)]
+               (or (->> y2s
+                        (map (fn [y2] [y2 (digits y2)]))
+                        (map (fn [[y2 y2ds]] [x2 y2 (make-anagram-pattern ds y2ds)]))
+                        (filter (fn [[_ _ pat]] (word-patterns pat)))
+                        (first)
+                        )
+                   (recur (dec x) (update sq-map sds #(conj % x2))))
+               (recur (dec x) (assoc sq-map sds [x2]))
+               )))
+         ;;(first)
+         )))
