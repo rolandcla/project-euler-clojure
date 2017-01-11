@@ -65,3 +65,13 @@
                       (map #(* y %) (lagrange-basis xs j))))
        (reduce #(map + %1 %2))
        ))
+
+(defn poly-eval [ks x]
+  (loop [[k & ks] ks
+         xn       1
+         y        0]
+    (if ks
+      (let [xn' (* xn x)]
+        (recur ks xn' (+ y (* k xn))))
+      y
+      )))
