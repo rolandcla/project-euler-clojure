@@ -64,14 +64,40 @@
        (map-indexed (fn [j y]
                       (map #(* y %) (lagrange-basis xs j))))
        (reduce #(map + %1 %2))
+       (reverse)
+       (vec)
        ))
 
 (defn poly-eval [ks x]
   (loop [[k & ks] ks
          xn       1
          y        0]
-    (if ks
-      (let [xn' (* xn x)]
-        (recur ks xn' (+ y (* k xn))))
-      y
-      )))
+    (let [xn' (* xn x)
+          y'  (+ y (* k xn))]
+      (if ks
+        (recur ks xn' y')
+        y'
+        ))))
+
+(def poly3 [0 0 0 1])
+
+;;           0  1 2  3 4  5 6  7 8  9 10
+(def poly10 [1 -1 1 -1 1 -1 1 -1 1 -1 1])
+
+(defn solution-for [poly]
+  (let [xs (range 1 (inc (count poly)))
+        ys (map (partial poly-eval poly) xs)]
+    (->> (range 1 (count poly))
+         (map (fn [n]
+                (let [ks (lagrange-interpolation (take n xs) (take n ys))]
+                  (map (fn [x] (poly-eval ks x)) (take (+ 1 n) xs)))))
+         (map (fn [zs] (last (map (fn [z y] [z y]) zs ys))))
+         (filter (fn [[z y]] (not= z y)))
+         (map first)
+         (reduce +)
+     )))
+
+(defn solution []
+  (solution-for poly10))
+
+;;-> 37076114526
