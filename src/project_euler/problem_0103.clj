@@ -52,7 +52,7 @@
 
 (defn search-optimum [xs]
   (let [cnt (count xs)]
-    (->> (combo/selections [-3 -2 -1 0 1 2 3] cnt)
+    (->> (combo/selections [-3 -2 -1 0 1] cnt)
          (filter (fn [ds] (< (reduce + ds) 0)))
          (map (fn [ds] (map + xs ds)))
          (filter #(apply distinct? %))
@@ -63,6 +63,10 @@
          )))
 
 (defn solution []
-  (->> (next-near-optimum-set [11 18 19 20 22 25])
-       (search-optimum)
-       ))
+  (or (->> (next-near-optimum-set [11 18 19 20 22 25])
+          (search-optimum)
+          (seq)
+          )
+      (next-near-optimum-set [11 18 19 20 22 25])))
+
+;;-> 20 31 38 39 40 42 45
