@@ -12,18 +12,20 @@
 ;; Given that Fk is the first Fibonacci number for which the first nine digits
 ;; AND the last nine digits are 1-9 pandigital, find k.
 
-(defn lz-digits [x]
-  (lazy-seq
-   (let [d  (rem x 10)
-         x' (quot x 10)]
-     (if (zero? x')
-       [d]
-       (cons d (lz-digits x'))))))
 
-(defn lz-fibo-seq []
+(defn digits [x]
+  (loop [x  x
+         ds [(rem x 10)]]
+    (let [x' (quot x 10)]
+      (if (zero? x')
+        ds
+        (recur x' (conj ds (rem x' 10))))
+      )))
+
+(defn lz-fibo-mod-seq []
   (iterate
    (fn [[f-0 f-1 n]]
-     [(+' f-0 f-1) f-0 (inc n)])
+     [(rem  (+ f-0 f-1) 1000000000) f-0 (inc n)])
    [1 1 2]
    ))
 
@@ -35,26 +37,28 @@
 (def sqrt5 (Math/sqrt 5))
 (def log-sqrt5 (Math/log10 sqrt5))
 
+(defn h-fibo [n]
+  (let [log-f (- (* log-phi n) log-sqrt5)]
+    (->> (if (< log-f 9)
+          log-f
+          (+ 8 (- log-f (int log-f))))
+        (Math/pow 10)
+        (int)
+        )))
+
 (defn solution []
-  (->> (iterate inc 1)
-       (map (fn [n]
-                 (-> (- (* log-phi n) log-sqrt5)
-                     (#(+ 10 (- % (int %))))
-                     (Math/pow 10)
-                     )))
-       (take 10)
+  (->> (lz-fibo-mod-seq)
+       (filter (fn [[f _ n]]
+                 (let [ds (digits f)]
+                   (and (= the-digits-1-to-9
+                           (set ds))
+                        (= the-digits-1-to-9
+                           (set (digits (h-fibo n))))
+                       )
+                   )))
+       (first)
+       (last)
        ))
 
+;;-> 329468
 
-;; (defn solution []
-;;   (->> (lz-fibo-seq)
-;;        (filter (fn [[f _ n]]
-;;                  (let [ds (lz-digits f)]
-;;                    (and (= the-digits-1-to-9
-;;                            (set (take 9 ds)))
-;;                         (= the-digits-1-to-9
-;;                            (set (take-last 9 ds))))
-;;                    )))
-;;        (first)
-;;        (last)
-;;        ))
