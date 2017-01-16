@@ -23,6 +23,12 @@
 (defn count-2-partitions [n]
   (dec (int (Math/pow 2 (dec n)))))
 
+(defn comb [n k]
+  (loop [n n, k k, p 1]
+    (if (zero? k)
+      p
+      (recur (dec n) (dec k) (/ (* p n) k)))))
+
 (defn solution-for [n]
   (let [xs (range n)
         xs' (range )]
@@ -37,3 +43,19 @@
                            )))
          
          )))
+
+(defn count-subset-pairs-for [n]
+  (let [xs (range n)]
+    (->> (range 2 (/ (inc n) 2))
+         (map (fn [m] (* (combo/count-combinations xs m)
+                         (count-2-partitions m))))
+         )))
+
+(defn solution-for [n]
+  (->> (range 1 (inc (/ n 2)))
+       (map (fn [m] [m (- n m 1)]))
+       (map (fn [[m x]]
+              (for [k (range 2 (/ (+ x 3) 2))]
+                [m x k (* (comb x k)
+                          (comb (- x k) (- k 2)))])))
+       ))
