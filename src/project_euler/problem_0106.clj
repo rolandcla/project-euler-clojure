@@ -29,33 +29,28 @@
       p
       (recur (dec n) (dec k) (/ (* p n) k)))))
 
-(defn solution-for [n]
-  (let [xs (range n)
-        xs' (range )]
-    (->> (range 2 (/ (inc n) 2))
-         ;; (map (fn [m] (* (combo/count-combinations xs m)
-         ;;                 (count-2-partitions m))))
-         (map (fn [m] (->> (for [l (range 1 (- n m))
-                                 h (range (+ l m) n)] [l h])
-                           (map (fn [[l h]]
-                                  (* (combo/count-combinations (range l h) m)
-                                     )))
-                           )))
-         
-         )))
-
 (defn count-subset-pairs-for [n]
-  (let [xs (range n)]
-    (->> (range 2 (/ (inc n) 2))
-         (map (fn [m] (* (combo/count-combinations xs m)
-                         (count-2-partitions m))))
-         )))
+  (->> (range 2 (inc n))
+       (map (fn [k] (* (comb n k)
+                       (count-2-partitions k))))
+       (reduce +)
+       ))
+
+(defn count-pairs-to-be-tested [n]
+  (->> (combo/partitions (range n) :min 2 :max 2)
+       (filter (fn [[xs ys]] (== (count xs) (/ n 2))))
+       (map (fn [[xs ys]] (map #(< %1 %2) xs ys)))
+       (remove #(== 1 (count (distinct %))))
+       (count)
+       ))
+
+(def mz-count-pairs-to-be-tested
+  (memoize count-pairs-to-be-tested))
 
 (defn solution-for [n]
-  (->> (range 1 (inc (/ n 2)))
-       (map (fn [m] [m (- n m 1)]))
-       (map (fn [[m x]]
-              (for [k (range 2 (/ (+ x 3) 2))]
-                [m x k (* (comb x k)
-                          (comb (- x k) (- k 2)))])))
+  (->> (range 4 (inc n) 2)
+       (map (fn [k] (* (comb n k) (mz-count-pairs-to-be-tested k))))
+       (reduce +)
        ))
+
+;;-> 21384
