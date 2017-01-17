@@ -4,7 +4,8 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/math.combinatorics "0.1.3"]]
+                 [org.clojure/math.combinatorics "0.1.3"]
+                 [org.jordanlewis/data.union-find "0.1.0"]]
   :main ^:skip-aot project-euler.core
   :target-path "target/%s"
   ;; :jvm-opts ["-Xss10M"] ;; (for problem 0094)
