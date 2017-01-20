@@ -63,12 +63,34 @@
        (vec)
        ))
 
+(def mz-checkouts
+  (memoize
+   (fn [x d]
+     (->> (cond (> d 2)  []
+                (== d 0) dbl-sections
+                :else    all-sections)
+          (take-while (fn [[v k]] (>= x v)))
+          (mapcat
+           (fn [[v k]]
+             (let [x' (- x v)]
+               (if (zero? x')
+                 [[[v k]]]
+                 (map #(concat [[v k]] %) (mz-checkouts x' (inc d)))))))
+          )
+     )))
 
-(defn checkouts
-  ([x] (checkouts x 0))
-  ([x d]
-   (cond (> d 2)  []
-         (== d 0) (->> dbl-sections
-                       (take-while (fn [[v k]] (>= x v)))
-                       )
-         )))
+(defn checkouts [x] (mz-checkouts x 0))
+
+(defn count-checkouts [x]
+  (->> (checkouts x)
+       (map (fn [[r & rs]] (vec (concat [r] (sort rs)))))
+       (set)
+       (count)
+       ))
+
+(defn solution []
+  (->> (range 1 100)
+       (map count-checkouts)
+       (reduce +)))
+
+;;-> 38182

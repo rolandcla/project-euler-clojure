@@ -1,5 +1,4 @@
-(ns project-euler.problem_0108
-  (:require [clojure.math.combinatorics :as combo]))
+(ns project-euler.problem_0108)
 
 ;; n the following equation x, y, and n are positive integers.
 
@@ -42,20 +41,19 @@
             :else             (recur x (next-fact p) pfs)
             ))))
 
-(defn count-pairs [ns]
-  (reduce (fn [n k] (+ k n (* 2 n k))) ns))
+(defn count-coprime-pairs [x]
+  (->> x
+       (prime-factors)
+       (group-by identity)
+       (vals)
+       (map count)
+       (reduce (fn [n k] (+ k n (* 2 n k))))
+       ))
 
 (defn solution []
   (->> (iterate #(+ 30 %) 30)
-       (map (fn [x]
-              [x
-               (->> x
-                    (prime-factors)
-                    (group-by identity)
-                    (vals)
-                    (map count)
-                    )]))
-       (drop-while (fn [[x n-pairs]] (<= (count-pairs n-pairs) 1000)))
+       (map (fn [x] [x (count-coprime-pairs x)]))
+       (drop-while (fn [[x n-pairs]] (<= n-pairs 1000)))
        (first)
        (first)
        ))
