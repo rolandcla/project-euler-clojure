@@ -36,6 +36,16 @@
 
 ;; Find the sum of all S(10, d).
 
+;;=====================================================================================
+
+(defn odd-prime?
+  [n]
+  {:pre [(integer? n) (> n 0)]}
+  (let [mmax (+ (Math/sqrt n) 1)]
+    (not (some #(== 0 (rem n %)) (range 7 mmax 2)))
+    ))
+
+
 (defn prime-factors [x]
   (letfn [(next-fact [n] (if (== n 2) 3 (+ n 2)))]
     (loop [x x, p 2, pfs []]
@@ -45,11 +55,40 @@
             :else             (recur x (next-fact p) pfs)
             ))))
 
-
 (defn primes-with-repeated-digits [n d]
   (let [ds (vec (repeat n d))]
-    (loop [n-m 2]
-      (let [cs (apply combo/cartesian-product (repeat n-m (for [e (range 10) :when (not (== e d))] e)))]
-        (->> (combo/combinations (range n) n-m)
-             )
+    (loop [n-m 1]
+      (let [cs (apply combo/cartesian-product (repeat n-m (for [e (range 10) :when (not (== e d))] e)))
+            ps (->> (combo/combinations (range n) n-m)
+                    (mapcat (fn [ixs] (map (fn [vs] [ixs vs]) cs)))
+                    (map (fn [[ixs vs]] (reduce (fn [ds' [ix v]] (assoc ds' ix v))
+                                                ds
+                                                (map vector ixs vs))))
+                    (remove (fn [ds]
+                              (let [last-d (nth ds (dec n))]
+                                (or (even? last-d)
+                                    (== 5 last-d)
+                                    (== 0 (rem (reduce + ds) 3))
+                                    (== 0 (nth ds 0))
+                                    ))))
+                    (map (fn [ds] (reduce (fn [x d] (+ d (* 10 x))) 0 ds)))
+                    (filter odd-prime?)
+                    )]
+        (if (seq ps)
+          [(- n n-m) ps]
+          (recur (inc n-m)))
         ))))
+
+(defn solution-for-n-digits [n]
+  (->> (range 10)
+       (map (fn [d] [d (primes-with-repeated-digits n d)]))
+       (map (fn [[d [m ps]]] [d m (count ps) (reduce + ps)]))
+       ))
+
+(defn solution []
+  (->> (solution-for-n-digits 10)
+       (map last)
+       (reduce +)
+       ))
+
+;;-> 612407567715
