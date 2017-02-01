@@ -45,6 +45,20 @@
                  (vec)
                  ))
 
+(defn gcd [x y]
+  (if (zero? y)
+    x
+    (recur y (rem x y))))
+
+(defn rad [x]
+  (loop [x x p 2 q 0 r 1]
+    (cond (> (* p p) x)   (if (== x q) r (* r x))
+          (< 0 (rem x p)) (recur x          (if (== 2 p) 3 (inc p)) p r)
+          (== p q)        (recur (quot x p) p                       p r)
+          :else           (recur (quot x p) p                       p (* r p))
+          )))
+
+
 (defn abc-hit? [[a b c]]
   (and (== 1 (gcd a b))
        (== 1 (gcd a c))
@@ -53,11 +67,6 @@
        (== (+ a b) c)
        (< (rad (* a b c)) c)
        ))
-
-(defn gcd [x y]
-  (if (zero? y)
-    x
-    (recur y (rem x y))))
 
 (defn decompose [x]
   (loop [x x
@@ -75,14 +84,6 @@
             :else           (recur (quot x p) ps        p (* r p) (conj upfs p)  mpfs)
             ))))
 
-
-(defn rad [x]
-  (loop [x x p 2 q 0 r 1]
-    (cond (> (* p p) x)   (if (== x q) r (* r x))
-          (< 0 (rem x p)) (recur x          (if (== 2 p) 3 (inc p)) p r)
-          (== p q)        (recur (quot x p) p                       p r)
-          :else           (recur (quot x p) p                       p (* r p))
-        )))
 
 
 
@@ -103,95 +104,67 @@
        ;;(count)
        ))
 
-;; (defn solution-for [c-max]
-;;   (->> (range 3 c-max)
-;;        (map (fn [c] [c (decompose c)]))
-;;        (filter (fn [[c [r upfs mpfs]]] (seq mpfs)))
-;;        ;;(filter (fn [[c [r upfs mpfs]]] (>= (/ c r) 6)))
-;;        ;;(count)
-;;        (mapcat (fn [[c [r upfs mpfs]]]
-;;                  (->> (if (odd? c) (iterate inc 1) (iterate #(+ % 2) 1))
-;;                       (map (fn [a] [a (- c a) c]))
-;;                       (take-while (fn [[a b c]] (< a b)))
-;;                       (remove (fn [[a b c]]
-;;                                 (some #(or (zero? (rem a %))
-;;                                            (zero? (rem b %))) upfs)
-;;                                 ))
-;;                       )
-;;                  ))
-;;        (filter (fn [[a b c]] (< (rad (* a b c)) c)))
-;;        (map (fn [[a b c]] c))
-;;        (reduce +)
-;;        ))
 
-;; (defn solutions-for-a [rad-ab c-pfs]
-;;   (let [ab-pfs (->> primes
-;;                     (take-while #(< % rad-ab))
-;;                     (filter #(== -1 (.indexOf c-pfs %)))
-;;                     )]
-;;     (products-under rad-ab ab-pfs)))
-
-(defn products-under [p-max xs]
-  (let [[x & xs'] xs]
+(defn products-under [pfs p-max r-max p r]
+  ;;(println pfs p-max r-max p r)
+  (let [[x & pfs'] pfs]
     (if x
-      (->> (iterate (fn [[p p-max']] [(* p x) (/ p-max' x)]) [1 p-max])
-                (take-while (fn [[p p-max']] (< p p-max)))
-                (mapcat (fn [[p p-max']]
-                          (map #(* p %) (products-under p-max' xs'))))
-                )
-      [1]
+      (let [r' (* r x)]
+        (concat
+         (when (< r' r-max)
+           (->> (iterate #(* % x) (* p x))
+                (take-while #(< % p-max))
+                (mapcat (fn [p'] (cons [p' r'] (products-under pfs' p-max r-max p' r'))))
+                ))
+         (products-under pfs' p-max r-max p r)
+         ))
+      nil
       )))
+
+(defn factors-with-product-under [xs p-max p-fs]
+  (let [p-fs' (for [[p fs] p-fs
+                    x      xs
+                    :let [p' (* x p)]
+                    :while (< p' p-max)]
+                [p' (conj fs x)])]
+    (when (seq p-fs')
+      (concat p-fs'
+              (factors-with-product-under (next xs) p-max p-fs')
+       ))
+    )
+  )
+
+(defn factors-with-product-under [xs p-max]
+  (reduce
+   (fn [p-fs x]
+     (->> (concat p-fs
+                  (for [[p fs] p-fs
+                        :let [p' (* p x)]
+                        :while (< p' p-max)
+                        ]
+                    [p' (conj fs x)])
+                  )
+          (sort)
+          ))
+   [[1 []]]
+   xs
+   ))
+
 
 (defn solutions-for-ab [c r c-pfs]
   (let [ab-pfs (->> primes
                     (take-while #(< % (/ c r)))
                     (filter #(== -1 (.indexOf c-pfs %)))
                     )]
-    (println ab-pfs)
-    (->> (products-under (/ c r) ab-pfs)
-         (mapcat (fn [pb]
-                   (->> ab-pfs
-                        (filter #(and (not (zero? (rem pb %)))
-                                      (< % (/ c r (rad pb)))
-                                      ))
-                        (products-under pb)
-                        (map (fn [pa] [pa pb]))
-                        (filter (fn [[a b]] (== c (+ a b))))
-                        (map (fn [[a b]] [a b c]))
-                        )
-                   ))
+    ;;(println ab-pfs)
+    (->> (products-under ab-pfs c (/ c r) 1 1)
+         (mapcat (fn [[b r-b]]
+                   (let [a (- c b)]
+                     (when (and (< a b)
+                                (== 1 (gcd a b))
+                                (< (rad (* a b c)) c))
+                       [[a b c]]))))
          )))
-
-
-;; (defn prime-factors-pairs [p-max xs]
-;;   (->> (combo/subsets xs)
-;;        (filter seq)
-;;        (filter #(<= (apply * %) p-max))
-;;        (mapcat (fn [a-ss]
-;;                  (->> (set/difference (set xs) (set a-ss))
-;;                       (vec)
-;;                       (combo/subsets)
-;;                       (filter seq)
-;;                       (filter #(<= (apply * %) p-max))
-;;                       (map (fn [b-ss] [a-ss b-ss]))
-;;                       )))
-;;        ))
-
-;; (defn solutions-for-ab [p-max c-pfs]
-;;   (let [ab-pfs (->> primes
-;;                     (take-while #(< % p-max))
-;;                     (filter #(== -1 (.indexOf c-pfs %)))
-;;                     )]
-;;     (->> (prime-factors-pairs p-max ab-pfs)
-;;          (mapcat (fn [[a-ss b-ss]]
-;;                    (->> (products-under p-max b-ss)
-;;                         (mapcat (fn [pb]
-;;                                   (->> (products-under pb a-ss)
-;;                                        (map (fn [pa] [pa pb])))))
-;;                         )))
-;;          )))
-
-
 
 (defn solution-for [c-max]
   (->> (range 3 c-max)
@@ -200,14 +173,44 @@
        (mapcat (fn [[c [r upfs mpfs]]]
                  (->> (solutions-for-ab c r upfs)
                       )))
-       ;;(drop 20)
-       (remove abc-hit?)
-       (take 10)
-       ;;(count)
-       
-       ;;(filter (fn [[a b c]] (< (rad (* a b c)) c)))
-       ;;(map (fn [[a b c]] c))
-       ;;(reduce +)
+       (map (fn [[a b c]] c))
+       (reduce +)
        ))
 
 
+(defn unique-prime-factors [x]
+  (letfn [(next-fact [n] (if (== n 2) 3 (+ n 2)))]
+    (loop [x x, p 2, pfs #{}]
+      (cond (== 1 x)          pfs
+            (> (* p p) x)     (conj pfs x)
+            (zero? (rem x p)) (recur (quot x p) p (conj pfs p))
+            :else             (recur x (next-fact p) pfs)
+            ))))
+
+
+(def prime-factors
+  (->> (range 120000)
+       (map unique-prime-factors)
+       (vec)
+       ))
+
+(defn solutions-for-c [c]
+  (let [c-pfs (nth prime-factors c)]
+    (->> (for [a (range 1 (/ c 2) (if (even? c) 2 1))
+               :let [b (- c a)]]
+           [a b c])
+         (filter (fn [[a b c]]
+                   (let [a-pfs (nth prime-factors a)
+                         b-pfs (nth prime-factors b)]
+                     (and (empty? (set/intersection a-pfs b-pfs c-pfs))
+                          (< (apply * (set/union a-pfs b-pfs c-pfs)) c)))
+                   ))
+         )))
+
+(defn solution []
+  (->> (range 3 1000)
+       (mapcat (fn [c] (solutions-for c)))
+       ;;(count)
+       (map (fn [[a b c]] c))
+       (reduce +)
+       ))
