@@ -23,23 +23,6 @@
 
 ;; Find ∑c for c < 120000.
 
-;; From problem 0010 :
-;; -------------------
-(defn prime?
-  [n]
-  {:pre [(integer? n) (> n 0)]}
-  (or (== 2 n)
-      (let [mmax (+ (Math/sqrt n) 1)]
-        (not (some #(== 0 (rem n %)) (concat [2] (range 3 mmax 2))))
-        )))
-
-(defn lz-primes
-  []
-  (concat [2]
-          (filter prime? (iterate #(+ 2 %) 3))))
-
-;;---------------------------------------------------------------------------
-
 (defn gcd [x y]
   (if (zero? y)
     x
@@ -52,23 +35,6 @@
           (== p q)        (recur (quot x p) p                       p r)
           :else           (recur (quot x p) p                       p (* r p))
           )))
-
-(defn abc-hit? [[a b c]]
-  (and (== 1 (gcd a b))
-       (== 1 (gcd a c))
-       (== 1 (gcd b c))
-       (< a b)
-       (== (+ a b) c)
-       (< (rad (* a b c)) c)
-       ))
-
-
-
-(def primes (->> (lz-primes)
-                 (take-while #(< % 120000))
-                 (vec)
-                 ))
-
 
 (def rad-by-val
   (->> (range 120000)
@@ -111,4 +77,3 @@
 (defn solution []
   (solution-for 120000))
 
-;;-> 18407904
