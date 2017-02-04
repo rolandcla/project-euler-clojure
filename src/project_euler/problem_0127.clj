@@ -1,7 +1,4 @@
-(ns project-euler.problem_0127
-  (:require [clojure.math.combinatorics :as combo])
-  (:require [clojure.set :as set])
-  )
+(ns project-euler.problem_0127)
 
 ;; The radical of n, rad(n), is the product of distinct prime factors of n.
 ;; For example, 504 = 2^3 × 3^2 × 7, so rad(504) = 2 × 3 × 7 = 42.
