@@ -1,9 +1,16 @@
-(ns project-euler.problem_0132
-  (:require [clojure.math.combinatorics :as combo]))
+(ns project-euler.problem_0133)
 
-;; A number consisting entirely of ones is called a repunit. We shall define R(k) to be a repunit of length k.
-;; For example, R(10) = 1111111111 = 11×41×271×9091, and the sum of these prime factors is 9414.
-;; Find the sum of the first forty prime factors of R(10^9).
+;; A number consisting entirely of ones is called a repunit.
+;; We shall define R(k) to be a repunit of length k; for example, R(6) = 111111.
+
+;; Let us consider repunits of the form R(10n).
+
+;; Although R(10), R(100), or R(1000) are not divisible by 17, R(10000) is divisible by 17.
+;; Yet there is no value of n for which R(10n) will divide by 19.
+;; In fact, it is remarkable that 11, 17, 41, and 73 are the only four primes below one-hundred
+;; that can be a factor of R(10n).
+
+;; Find the sum of all the primes below one-hundred thousand that will never be a factor of R(10n).
 
 ;; From problem 0010 :
 ;; -------------------
@@ -25,14 +32,6 @@
             :else             (recur x (next-fact p) pfs)
             ))))
 
-
-(def divisors-of-1e9
-  (->> (prime-factors 1000000000)
-       combo/subsets
-       (map #(apply * 1 %))
-       set
-       ))
-
 (defn a [n]
   (loop [r 1 k 1]
     (let [r' (rem r n)]
@@ -42,14 +41,12 @@
         ))))
 
 (defn solution []
-  (->> (iterate inc 3)
-       (remove #(zero? (rem % 5)))
+  (->> (concat [3] (range 7 100000 2))
        (filter prime?)
        (map (fn [n] [n (a n)]))
-       (filter #(divisors-of-1e9 (second %)))
-       (take 40)
+       (remove #(every? #{2 5} (prime-factors (second %))))
        (map first)
-       (apply +)
+       (apply + 2 5)
        ))
 
-;;-> 843296
+;;-> 453647705
