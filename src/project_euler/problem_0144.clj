@@ -1,4 +1,4 @@
-(ns project-euler.problem-0144)
+(ns project-euler.problem_0144)
 
 ;; In laser physics, a "white cell" is a mirror system that acts as a delay line for the laser beam.
 ;; The beam enters the cell, bounces around on the mirrors, and eventually works its way back out.
