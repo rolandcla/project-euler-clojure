@@ -24,3 +24,13 @@
 
 (defn count-hv-rect [w h]
   (* (count-sub-segments w) (count-sub-segments h)))
+
+(defn count-diag-rect [w h]
+  (let [[w h] (if (< w h) [h w] [w h])
+        h2 (+ h h)]
+    (->> (range 1 h2)
+         (mapcat (fn [h-diag]
+                   (when (> w 1)
+                     (concat
+                      (->> (range 2 (inc (- h2 h-diag)))
+                           (map (fn [w-diag] [[h-diag w-diag] [h-diag w-diag]]))))))))))
