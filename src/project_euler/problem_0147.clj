@@ -31,6 +31,61 @@
     (->> (range 1 h2)
          (mapcat (fn [h-diag]
                    (when (> w 1)
-                     (concat
-                      (->> (range 2 (inc (- h2 h-diag)))
-                           (map (fn [w-diag] [[h-diag w-diag] [h-diag w-diag]]))))))))))
+                     (let [d (- h2 h-diag)]
+                       (conj
+                        (->> (range 2 d 2)
+                             (map (fn [w-diag] [h-diag w-diag 2])))
+                        [h-diag d (if (even? d) (- w h -1) (- w h))]
+                        )))))
+         (map (fn [[_ l n]] (* n (count-sub-segments l))))
+         (apply +))))
+
+;; 8x5
+;; h-diag
+;;   1      [2 4 6 8]*2  [9]*3
+;;   2      [2 4 6]*2    [8]*4
+;;   3      [2 4 6]*2    [7]*3
+;;   4      [2 4]*2      [6]*4
+;;   5      [2 4]*2      [5]*3
+;;   6      [2]*2        [4]*4
+;;   7      [2]*2        [3]*3
+;;   8                   [2]*4
+;;   9                   [1]*3
+
+;; 8x6
+;; h-diag
+;;   1     [2 4 6 8 10]*2 [11]*2
+;;   2     [2 4 6 8]*2    [10]*3
+;;   3     [2 4 5 8]*2    [9]*2
+;;...
+
+;; 6x6
+;; h-diag
+;;   1    [2 4 6 8 10]*2
+;;   2    [2 4 6 8]*2    [10]*1
+;;   3    [2 4 6 8]*2
+;;   4    [2 4 6]*2      [8]*1
+
+;; 3x2
+;; h-diag
+;;   1    [2]*2          [3]*1
+;;   2                   [2]*2
+;;   3                   [1]*1
+
+(defn count-rect [w h]
+  (+ (count-hv-rect w h)
+     (count-diag-rect w h)))
+
+(defn solution-for [w h]
+  (->> (for [ww (range 1 (inc w))
+             hh (range 1 (inc h))]
+         (count-rect ww hh))
+       (apply +)))
+
+(defn solution []
+  (solution-for 47 43))
+
+;; 846910284
+
+
+
