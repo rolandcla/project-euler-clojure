@@ -1,4 +1,4 @@
-(ns project-euler.problem-0149
+(ns project-euler.problem_0149
   (:use [clojure.java.shell :only [sh]]))
 
 ;; Looking at the table below, it is easy to verify that the maximum possible sum of adjacent numbers
